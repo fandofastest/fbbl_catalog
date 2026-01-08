@@ -39,7 +39,7 @@ class ProductDetailScreen extends StatelessWidget {
           const SizedBox(height: 8),
           Row(
             children: [
-              Text('£${(product.price / 100).toStringAsFixed(2)}', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
+              Text('£${product.price.toStringAsFixed(2)}', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
               const SizedBox(width: 12),
               Text('Stock: ${product.stock}', style: const TextStyle(color: Colors.black54)),
             ],

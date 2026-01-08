@@ -40,7 +40,7 @@ class _MyTransactionsScreenState extends State<MyTransactionsScreen> {
   }
 
   Future<void> _showDetails(UserTransaction t) async {
-    final total = '£${(t.total / 100).toStringAsFixed(2)}';
+    final total = '£${t.total.toStringAsFixed(2)}';
     await showDialog<void>(
       context: context,
       builder: (ctx) {
@@ -72,7 +72,7 @@ class _MyTransactionsScreenState extends State<MyTransactionsScreen> {
                           ),
                           Text('x${line.qty}'),
                           const SizedBox(width: 12),
-                          Text('£${(line.price / 100).toStringAsFixed(2)}'),
+                          Text('£${line.price.toStringAsFixed(2)}'),
                         ],
                       ),
                     ),
@@ -250,7 +250,7 @@ class _MyTransactionsScreenState extends State<MyTransactionsScreen> {
               separatorBuilder: (_, __) => const SizedBox(height: 10),
               itemBuilder: (context, index) {
                 final t = items[index];
-                final total = '£${(t.total / 100).toStringAsFixed(2)}';
+                final total = '£${t.total.toStringAsFixed(2)}';
                 final canCancel = _canCancel(t);
                 final accent = _statusColor(context, t.status);
                 final shortId = t.id.substring(0, t.id.length > 6 ? 6 : t.id.length);
