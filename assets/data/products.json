@@ -1,0 +1,208 @@
+[
+  {
+    "id": 1,
+    "name": "Sparkle Tonic Water",
+    "category": "Beverage",
+    "description": "Crisp, carbonated tonic water ideal for mixers and mocktails.",
+    "packaging": "24 x 330ml cans",
+    "image": "product_1.png",
+    "tags": ["best"]
+  },
+  {
+    "id": 2,
+    "name": "Cold Brew Coffee Original",
+    "category": "Beverage",
+    "description": "Slow-steeped Arabica coffee, smooth and bold.",
+    "packaging": "12 x 250ml bottles",
+    "image": "product_2.png"
+  },
+  {
+    "id": 3,
+    "name": "Organic Apple Juice",
+    "category": "Beverage",
+    "description": "Not-from-concentrate apple juice with a fresh orchard taste.",
+    "packaging": "6 x 1L",
+    "image": "product_3.png"
+  },
+  {
+    "id": 4,
+    "name": "Ginger Beer Premium",
+    "category": "Beverage",
+    "description": "Spicy ginger beer with natural ginger extract.",
+    "packaging": "24 x 330ml cans",
+    "image": "product_4.png",
+    "tags": ["new"]
+  },
+  {
+    "id": 5,
+    "name": "Still Mineral Water",
+    "category": "Beverage",
+    "description": "Pure still water sourced from protected springs.",
+    "packaging": "24 x 500ml",
+    "image": "product_5.png"
+  },
+  {
+    "id": 6,
+    "name": "Sparkling Mineral Water",
+    "category": "Beverage",
+    "description": "Lightly carbonated mineral water, refreshingly crisp.",
+    "packaging": "24 x 500ml",
+    "image": "product_6.png"
+  },
+  {
+    "id": 7,
+    "name": "Matcha Green Tea Latte",
+    "category": "Beverage",
+    "description": "Creamy matcha latte with ceremonial-grade green tea.",
+    "packaging": "12 x 250ml bottles",
+    "image": "product_7.png",
+    "tags": ["best"]
+  },
+  {
+    "id": 8,
+    "name": "Citrus Energy Drink",
+    "category": "Beverage",
+    "description": "Natural caffeine, B-vitamins, bright citrus profile.",
+    "packaging": "24 x 250ml cans",
+    "image": "product_8.png"
+  },
+  {
+    "id": 9,
+    "name": "Pomegranate Iced Tea",
+    "category": "Beverage",
+    "description": "Black tea brewed with pomegranate for a tart finish.",
+    "packaging": "12 x 500ml",
+    "image": "product_9.png"
+  },
+  {
+    "id": 10,
+    "name": "Protein Shake Chocolate",
+    "category": "Beverage",
+    "description": "High-protein shake with rich cocoa and reduced sugar.",
+    "packaging": "12 x 330ml",
+    "image": "product_10.png"
+  },
+  {
+    "id": 11,
+    "name": "Sea Salt Hand-Cooked Crisps",
+    "category": "Food",
+    "description": "Thick-cut potatoes cooked in small batches, lightly salted.",
+    "packaging": "24 x 40g",
+    "image": "product_11.png",
+    "tags": ["best"]
+  },
+  {
+    "id": 12,
+    "name": "Sweet Chili Rice Crackers",
+    "category": "Food",
+    "description": "Crispy rice crackers glazed with sweet chili seasoning.",
+    "packaging": "12 x 90g",
+    "image": "product_12.png"
+  },
+  {
+    "id": 13,
+    "name": "Almond & Cranberry Trail Mix",
+    "category": "Food",
+    "description": "Roasted almonds with tart cranberries and pumpkin seeds.",
+    "packaging": "12 x 100g",
+    "image": "product_13.png"
+  },
+  {
+    "id": 14,
+    "name": "Granola Clusters Honey Oat",
+    "category": "Food",
+    "description": "Crunchy oat clusters baked with honey and seeds.",
+    "packaging": "8 x 400g",
+    "image": "product_14.png"
+  },
+  {
+    "id": 15,
+    "name": "Dark Chocolate Digestives",
+    "category": "Food",
+    "description": "Biscuit base coated in dark chocolate.",
+    "packaging": "12 x 200g",
+    "image": "product_15.png",
+    "tags": ["new"]
+  },
+  {
+    "id": 16,
+    "name": "Tomato & Basil Pasta Sauce",
+    "category": "Food",
+    "description": "Slow-cooked Italian tomatoes with fresh basil.",
+    "packaging": "6 x 500g jars",
+    "image": "product_16.png"
+  },
+  {
+    "id": 17,
+    "name": "Wholegrain Mustard",
+    "category": "Food",
+    "description": "Traditional wholegrain mustard with a tangy finish.",
+    "packaging": "6 x 200g jars",
+    "image": "product_17.png"
+  },
+  {
+    "id": 18,
+    "name": "Artisanal Sourdough Crackers",
+    "category": "Food",
+    "description": "Baked sourdough crackers with a light crunch.",
+    "packaging": "12 x 120g",
+    "image": "product_18.png"
+  },
+  {
+    "id": 19,
+    "name": "Roasted Cashews Sea Salt",
+    "category": "Food",
+    "description": "Buttery cashews roasted and lightly salted.",
+    "packaging": "12 x 150g",
+    "image": "product_19.png"
+  },
+  {
+    "id": 20,
+    "name": "Peanut Butter Smooth",
+    "category": "Food",
+    "description": "100% peanuts, silky smooth spread, no added sugar.",
+    "packaging": "6 x 340g jars",
+    "image": "product_20.png"
+  },
+  {
+    "id": 21,
+    "name": "Peanut Butter Crunchy",
+    "category": "Food",
+    "description": "Crunchy peanut butter with roasted pieces.",
+    "packaging": "6 x 340g jars",
+    "image": "product_21.png"
+  },
+  {
+    "id": 22,
+    "name": "Muesli Fruit & Nut",
+    "category": "Food",
+    "description": "Swiss-style muesli with dried fruit and nuts.",
+    "packaging": "8 x 1kg",
+    "image": "product_22.png"
+  },
+  {
+    "id": 23,
+    "name": "Tomato Juice",
+    "category": "Beverage",
+    "description": "Rich tomato juice seasoned with celery salt.",
+    "packaging": "12 x 1L",
+    "image": "product_23.png"
+  },
+  {
+    "id": 24,
+    "name": "Lemon Iced Tea Zero",
+    "category": "Beverage",
+    "description": "Sugar-free lemon iced tea, crisp and refreshing.",
+    "packaging": "24 x 330ml cans",
+    "image": "product_24.png",
+    "tags": ["new"]
+  },
+  {
+    "id": 25,
+    "name": "Coconut Water",
+    "category": "Beverage",
+    "description": "100% coconut water, naturally hydrating.",
+    "packaging": "12 x 500ml",
+    "image": "product_25.png"
+  }
+]

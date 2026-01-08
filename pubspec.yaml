@@ -1,0 +1,46 @@
+name: fbbl_catalog
+description: A simple offline product catalog for FOOD AND BEVERAGE BRANDS LIMITED
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.3.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.6
+  provider: ^6.0.5
+  url_launcher: ^6.3.0
+  shared_preferences: ^2.2.2
+  google_fonts: ^6.2.1
+  flutter_svg: ^2.0.10
+  share_plus: ^7.2.1
+
+dev_dependencies:
+  image: ^4.1.3
+  flutter_native_splash: ^2.4.1
+  flutter_launcher_icons: ^0.13.1
+
+flutter_native_splash:
+  color: "#FFFFFF"
+  image: assets/images/logo.png
+  android_12:
+    color: "#FFFFFF"
+    image: assets/images/logo.png
+  # Optionally set a branding image (provide a square/transparent PNG if available)
+  # branding: assets/images/app_branding.png
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: assets/images/logo.png
+  adaptive_icon_background: "#FFFFFF"
+  adaptive_icon_foreground: assets/images/logo.png
+  min_sdk_android: 24
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/data/
+    - assets/images/
