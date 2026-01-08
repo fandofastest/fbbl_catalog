@@ -3,6 +3,7 @@ import '../config/company.dart';
 import 'product_list_screen.dart';
 import 'contact_screen.dart';
 import 'package:provider/provider.dart';
+import '../providers/category_provider.dart';
 import '../providers/product_provider.dart';
 import 'product_detail_screen.dart';
 import '../widgets/product_image.dart';
@@ -194,15 +195,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 height: 196,
                 child: Consumer<ProductProvider>(
                   builder: (context, provider, _) {
-                    final best = provider.products
-                        .where((p) => p.tags.map((e) => e.toLowerCase()).contains('best'))
-                        .take(10)
-                        .toList();
-                    final newest = provider.products
-                        .where((p) => p.tags.map((e) => e.toLowerCase()).contains('new'))
-                        .take(10)
-                        .toList();
-                    final items = best.isNotEmpty ? best : newest;
+                    final items = provider.products.take(10).toList();
 
                     if (items.isEmpty) {
                       return Center(
@@ -219,7 +212,6 @@ class _HomeScreenState extends State<HomeScreen> {
                       separatorBuilder: (_, __) => const SizedBox(width: 12),
                       itemBuilder: (context, index) {
                         final p = items[index];
-                        final tags = p.tags.map((e) => e.toLowerCase()).toSet();
                         return SizedBox(
                           width: 240,
                           child: Card(
@@ -239,25 +231,14 @@ class _HomeScreenState extends State<HomeScreen> {
                                       children: [
                                         Positioned.fill(
                                           child: ProductImage(
-                                            assetName: p.image,
+                                            assetName: p.imageUrl,
                                             fallbackText: p.name,
-                                            category: p.category,
+                                            category: p.category.name,
                                             borderRadius: const BorderRadius.only(
                                               topLeft: Radius.circular(16),
                                               topRight: Radius.circular(16),
                                             ),
                                             fit: BoxFit.cover,
-                                          ),
-                                        ),
-                                        Positioned(
-                                          left: 10,
-                                          top: 10,
-                                          child: Row(
-                                            children: [
-                                              if (tags.contains('new')) const _Badge(text: 'NEW'),
-                                              if (tags.contains('new') && tags.contains('best')) const SizedBox(width: 6),
-                                              if (tags.contains('best')) const _Badge(text: 'BEST'),
-                                            ],
                                           ),
                                         ),
                                       ],
@@ -275,7 +256,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                           style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
                                         ),
                                         const SizedBox(height: 4),
-                                        Text(p.category, style: theme.textTheme.bodySmall),
+                                        Text(p.category.name, style: theme.textTheme.bodySmall),
                                       ],
                                     ),
                                   ),
@@ -303,22 +284,24 @@ class _HomeScreenState extends State<HomeScreen> {
                 height: 80,
                 child: Stack(
                   children: [
-                    Consumer<ProductProvider>(
+                    Consumer<CategoryProvider>(
                       builder: (context, provider, _) {
-                        final categories = {
-                          for (final p in provider.products) p.category
-                        }.toList();
-                        if (categories.isEmpty) {
-                          categories.addAll(['Beverage', 'Food']);
-                        }
+                        final categories = provider.categories;
                         return ListView.separated(
                           controller: _quickLinksController,
                           physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
                           scrollDirection: Axis.horizontal,
                           padding: const EdgeInsets.symmetric(horizontal: 8),
-                          itemCount: categories.length,
+                          itemCount: categories.isNotEmpty ? categories.length : 2,
                           separatorBuilder: (_, __) => const SizedBox(width: 12),
-                          itemBuilder: (context, index) => _QuickLink(label: categories[index]),
+                          itemBuilder: (context, index) {
+                            if (categories.isEmpty) {
+                              final label = index == 0 ? 'Beverage' : 'Food';
+                              return _QuickLink(label: label);
+                            }
+                            final c = categories[index];
+                            return _QuickLink(label: c.name, categoryId: c.id);
+                          },
                         );
                       },
                     ),
@@ -416,9 +399,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                 children: [
                                   Expanded(
                                     child: ProductImage(
-                                      assetName: p.image,
+                                      assetName: p.imageUrl,
                                       fallbackText: p.name,
-                                      category: p.category,
+                                      category: p.category.name,
                                       fit: BoxFit.cover,
                                       borderRadius: const BorderRadius.only(
                                         topLeft: Radius.circular(12),
@@ -438,7 +421,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                           style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
                                         ),
                                         const SizedBox(height: 4),
-                                        Text(p.category, style: theme.textTheme.bodySmall),
+                                        Text(p.category.name, style: theme.textTheme.bodySmall),
                                       ],
                                     ),
                                   ),
@@ -487,31 +470,10 @@ class _StatPill extends StatelessWidget {
   }
 }
 
-class _Badge extends StatelessWidget {
-  final String text;
-  const _Badge({required this.text});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface.withOpacity(0.85),
-        borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: theme.colorScheme.outlineVariant.withOpacity(0.6)),
-      ),
-      child: Text(
-        text,
-        style: theme.textTheme.labelSmall?.copyWith(fontWeight: FontWeight.w700),
-      ),
-    );
-  }
-}
-
 class _QuickLink extends StatelessWidget {
   final String label;
-  const _QuickLink({required this.label});
+  final String? categoryId;
+  const _QuickLink({required this.label, this.categoryId});
 
   IconData _iconForLabel(String label) {
     switch (label.toLowerCase()) {
@@ -519,10 +481,6 @@ class _QuickLink extends StatelessWidget {
         return Icons.local_cafe_outlined;
       case 'food':
         return Icons.restaurant_outlined;
-      case 'new':
-        return Icons.new_releases_outlined;
-      case 'best':
-        return Icons.star_border;
       default:
         return Icons.category_outlined;
     }
@@ -540,17 +498,6 @@ class _QuickLink extends StatelessWidget {
     }
   }
 
-  String? _initialCategoryForLabel(String label) {
-    switch (label.toLowerCase()) {
-      case 'beverages':
-        return 'Beverage';
-      case 'food':
-        return 'Food';
-      default:
-        return null;
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final tone = _toneForLabel(context, label);
@@ -564,12 +511,11 @@ class _QuickLink extends StatelessWidget {
         child: InkWell(
           borderRadius: BorderRadius.circular(12),
           onTap: () {
-            final initialCat = _initialCategoryForLabel(label);
             Navigator.of(context).push(
               MaterialPageRoute(
                 builder: (_) => const ProductListScreen(),
                 settings: RouteSettings(
-                  arguments: initialCat != null ? {'initialCategory': initialCat} : null,
+                  arguments: categoryId != null ? {'initialCategoryId': categoryId} : null,
                 ),
               ),
             );

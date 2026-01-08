@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../models/product.dart';
+import '../providers/category_provider.dart';
+import '../providers/order_provider.dart';
 import '../providers/product_provider.dart';
-import 'product_detail_screen.dart';
 import '../widgets/product_image.dart';
+import 'cart_screen.dart';
+import 'product_detail_screen.dart';
 
 class ProductListScreen extends StatefulWidget {
   static const routeName = '/products';
@@ -16,17 +20,32 @@ class _ProductListScreenState extends State<ProductListScreen> {
   final TextEditingController _searchCtrl = TextEditingController();
   final FocusNode _searchFocus = FocusNode();
   String _query = '';
-  String _selectedCategory = 'All';
+  String? _selectedCategoryId;
   bool _argsApplied = false;
   bool _grid = false;
 
-  final Set<String> _tagFilters = {}; // 'new', 'best'
-  final Set<String> _categoryFilters = {}; // multi-select via sheet
+  final Set<String> _categoryFilters = {}; // categoryId multi-select via sheet
 
   static const _sortNameAsc = 'Name (A–Z)';
   static const _sortCategoryAsc = 'Category';
   static const _sortNewest = 'Newest';
   String _sortMode = _sortNameAsc;
+
+  void _addToOrder(BuildContext context, Product product) {
+    context.read<OrderProvider>().add(product);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('${product.name} added to order'),
+        duration: const Duration(seconds: 1),
+      ),
+    );
+  }
+
+  Future<void> _checkout(BuildContext context) async {
+    final orders = context.read<OrderProvider>();
+    if (!orders.hasItems) return;
+    await Navigator.of(context).pushNamed(CartScreen.routeName);
+  }
 
   @override
   void initState() {
@@ -45,51 +64,18 @@ class _ProductListScreenState extends State<ProductListScreen> {
     if (_argsApplied) return;
     final args = ModalRoute.of(context)?.settings.arguments;
     if (args is Map) {
-      final cat = args['initialCategory'];
-      if (cat is String && cat.isNotEmpty) {
-        _selectedCategory = cat;
+      final catId = args['initialCategoryId'];
+      if (catId is String && catId.isNotEmpty) {
+        _selectedCategoryId = catId;
       }
     }
     _argsApplied = true;
   }
 
-  Widget _buildBadges(BuildContext context, ProductDetailArgs args) {
-    final tags = args.product.tags.map((e) => e.toLowerCase()).toSet();
-    final theme = Theme.of(context);
-    final List<Widget> chips = [];
-    if (tags.contains('new')) {
-      chips.add(_tagChip(theme.colorScheme.secondary, 'New'));
-    }
-    if (tags.contains('best')) {
-      chips.add(_tagChip(theme.colorScheme.primary, 'Best'));
-    }
-    if (chips.isEmpty) return const SizedBox.shrink();
-    return Wrap(spacing: 6, runSpacing: 4, children: chips);
-  }
-
-  Widget _tagChip(Color color, String label) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.15),
-        borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: color.withOpacity(0.35)),
-      ),
-      child: Text(
-        label,
-        style: TextStyle(fontSize: 11, color: color, fontWeight: FontWeight.w600),
-      ),
-    );
-  }
 
   void _openFilterSheet() {
-    final provider = context.read<ProductProvider>();
-    final categories = {
-      for (final p in provider.products) p.category
-    }.toList()
-      ..sort();
-
-    final tempTags = {..._tagFilters};
+    final cats = context.read<CategoryProvider>().categories;
+    final categories = cats.toList()..sort((a, b) => a.name.compareTo(b.name));
     final tempCats = {..._categoryFilters};
     String tempSort = _sortMode;
 
@@ -107,29 +93,6 @@ class _ProductListScreenState extends State<ProductListScreen> {
                   children: [
                     const Text('Filter & Sort', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
                     const SizedBox(height: 16),
-                    const Text('Tags', style: TextStyle(fontWeight: FontWeight.w600)),
-                    const SizedBox(height: 8),
-                    Wrap(spacing: 8, children: [
-                      FilterChip(
-                        label: const Text('New'),
-                        selected: tempTags.contains('new'),
-                        selectedColor: Theme.of(context).colorScheme.secondary.withOpacity(0.2),
-                        checkmarkColor: Theme.of(context).colorScheme.secondary,
-                        onSelected: (v) => setModalState(() {
-                          v ? tempTags.add('new') : tempTags.remove('new');
-                        }),
-                      ),
-                      FilterChip(
-                        label: const Text('Best'),
-                        selected: tempTags.contains('best'),
-                        selectedColor: Theme.of(context).colorScheme.primary.withOpacity(0.2),
-                        checkmarkColor: Theme.of(context).colorScheme.primary,
-                        onSelected: (v) => setModalState(() {
-                          v ? tempTags.add('best') : tempTags.remove('best');
-                        }),
-                      ),
-                    ]),
-                    const SizedBox(height: 16),
                     const Text('Categories', style: TextStyle(fontWeight: FontWeight.w600)),
                     const SizedBox(height: 8),
                     Wrap(
@@ -138,12 +101,12 @@ class _ProductListScreenState extends State<ProductListScreen> {
                       children: [
                         for (final c in categories)
                           FilterChip(
-                            label: Text(c),
-                            selected: tempCats.contains(c),
+                            label: Text(c.name),
+                            selected: tempCats.contains(c.id),
                             selectedColor: Theme.of(context).colorScheme.tertiary.withOpacity(0.18),
                             checkmarkColor: Theme.of(context).colorScheme.tertiary,
                             onSelected: (v) => setModalState(() {
-                              v ? tempCats.add(c) : tempCats.remove(c);
+                              v ? tempCats.add(c.id) : tempCats.remove(c.id);
                             }),
                           ),
                       ],
@@ -174,7 +137,6 @@ class _ProductListScreenState extends State<ProductListScreen> {
                         Expanded(
                           child: OutlinedButton(
                             onPressed: () => setModalState(() {
-                              tempTags.clear();
                               tempCats.clear();
                               tempSort = _sortNameAsc;
                             }),
@@ -192,9 +154,6 @@ class _ProductListScreenState extends State<ProductListScreen> {
                           child: FilledButton(
                             onPressed: () {
                               setState(() {
-                                _tagFilters
-                                  ..clear()
-                                  ..addAll(tempTags);
                                 _categoryFilters
                                   ..clear()
                                   ..addAll(tempCats);
@@ -220,7 +179,10 @@ class _ProductListScreenState extends State<ProductListScreen> {
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<ProductProvider>();
-    final hasActiveFilters = _tagFilters.isNotEmpty || _categoryFilters.isNotEmpty || _sortMode != _sortNameAsc;
+    final orders = context.watch<OrderProvider>();
+    final hasActiveFilters = _categoryFilters.isNotEmpty || _sortMode != _sortNameAsc;
+    final categoriesProvider = context.watch<CategoryProvider>();
+    final categories = categoriesProvider.categories;
     return Scaffold(
       appBar: AppBar(
         title: const Text('Products'),
@@ -280,6 +242,13 @@ class _ProductListScreenState extends State<ProductListScreen> {
           ),
         ),
       ),
+      floatingActionButton: orders.hasItems
+          ? FloatingActionButton.extended(
+              onPressed: () => _checkout(context),
+              icon: const Icon(Icons.shopping_cart_checkout),
+              label: Text('Checkout (${orders.totalQuantity})'),
+            )
+          : null,
       body: Builder(
         builder: (_) {
           if (provider.loading) {
@@ -288,38 +257,26 @@ class _ProductListScreenState extends State<ProductListScreen> {
           if (provider.error != null) {
             return Center(child: Text('Error: ${provider.error}'));
           }
-          final categories = ['All', ...{
-            for (final p in provider.products) p.category
-          }];
-          if (!categories.contains(_selectedCategory)) {
-            _selectedCategory = 'All';
-          }
-
           final items = provider.products.where((p) {
             if (_query.isEmpty) return true;
             final n = p.name.toLowerCase();
-            final c = p.category.toLowerCase();
+            final c = p.category.name.toLowerCase();
             return n.contains(_query) || c.contains(_query);
-          }).toList();
-          final withTags = items.where((p) {
-            if (_tagFilters.isEmpty) return true;
-            final tags = p.tags.map((e) => e.toLowerCase()).toSet();
-            return _tagFilters.any(tags.contains);
           }).toList();
 
           Set<String>? effectiveCats;
           if (_categoryFilters.isNotEmpty) {
             effectiveCats = _categoryFilters;
-          } else if (_selectedCategory != 'All') {
-            effectiveCats = {_selectedCategory};
+          } else if (_selectedCategoryId != null) {
+            effectiveCats = {_selectedCategoryId!};
           }
 
-          final filtered = withTags.where((p) => effectiveCats == null || effectiveCats.contains(p.category)).toList();
+          final filtered = items.where((p) => effectiveCats == null || effectiveCats.contains(p.category.id)).toList();
 
           filtered.sort((a, b) {
             switch (_sortMode) {
               case _sortCategoryAsc:
-                final c = a.category.compareTo(b.category);
+                final c = a.category.name.compareTo(b.category.name);
                 return c != 0 ? c : a.name.compareTo(b.name);
               case _sortNewest:
                 return b.id.compareTo(a.id);
@@ -338,17 +295,18 @@ class _ProductListScreenState extends State<ProductListScreen> {
                 child: ListView.separated(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   scrollDirection: Axis.horizontal,
-                  itemCount: categories.length,
+                  itemCount: categories.length + 1,
                   separatorBuilder: (_, __) => const SizedBox(width: 8),
                   itemBuilder: (context, index) {
-                    final cat = categories[index];
-                    final selected = cat == _selectedCategory;
+                    final bool isAll = index == 0;
+                    final cat = isAll ? null : categories[index - 1];
+                    final selected = isAll ? _selectedCategoryId == null : cat!.id == _selectedCategoryId;
                     return ChoiceChip(
-                      label: Text(cat),
+                      label: Text(isAll ? 'All' : cat!.name),
                       selected: selected,
                       selectedColor: Theme.of(context).colorScheme.tertiary.withOpacity(0.18),
                       checkmarkColor: Theme.of(context).colorScheme.tertiary,
-                      onSelected: (_) => setState(() => _selectedCategory = cat),
+                      onSelected: (_) => setState(() => _selectedCategoryId = isAll ? null : cat!.id),
                     );
                   },
                 ),
@@ -356,7 +314,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
               Expanded(
                 child: _grid
                     ? GridView.builder(
-                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                           crossAxisCount: 2,
                           mainAxisSpacing: 12,
@@ -366,29 +324,53 @@ class _ProductListScreenState extends State<ProductListScreen> {
                         itemCount: filtered.length,
                         itemBuilder: (context, index) {
                           final p = filtered[index];
-                          return InkWell(
-                            borderRadius: BorderRadius.circular(12),
-                            onTap: () {
-                              Navigator.pushNamed(
-                                context,
-                                ProductDetailScreen.routeName,
-                                arguments: ProductDetailArgs(product: p),
-                              );
-                            },
-                            child: Card(
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          final inCart = orders.contains(p);
+                          return Card(
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            child: InkWell(
+                              borderRadius: BorderRadius.circular(12),
+                              onTap: () {
+                                Navigator.pushNamed(
+                                  context,
+                                  ProductDetailScreen.routeName,
+                                  arguments: ProductDetailArgs(product: p),
+                                );
+                              },
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Expanded(
-                                    child: ProductImage(
-                                      assetName: p.image,
-                                      fallbackText: p.name,
-                                      category: p.category,
-                                      borderRadius: const BorderRadius.only(
-                                        topLeft: Radius.circular(12),
-                                        topRight: Radius.circular(12),
-                                      ),
+                                    child: Stack(
+                                      children: [
+                                        Positioned.fill(
+                                          child: ProductImage(
+                                            assetName: p.imageUrl,
+                                            fallbackText: p.name,
+                                            category: p.category.name,
+                                            borderRadius: const BorderRadius.only(
+                                              topLeft: Radius.circular(12),
+                                              topRight: Radius.circular(12),
+                                            ),
+                                          ),
+                                        ),
+                                        Positioned(
+                                          right: 6,
+                                          top: 6,
+                                          child: IconButton(
+                                            visualDensity: VisualDensity.compact,
+                                            style: ButtonStyle(
+                                              backgroundColor: WidgetStateProperty.all(
+                                                Theme.of(context).colorScheme.surface.withOpacity(0.85),
+                                              ),
+                                            ),
+                                            icon: Icon(
+                                              inCart ? Icons.check : Icons.add_shopping_cart_outlined,
+                                              color: inCart ? Theme.of(context).colorScheme.primary : null,
+                                            ),
+                                            onPressed: () => _addToOrder(context, p),
+                                          ),
+                                        ),
+                                      ],
                                     ),
                                   ),
                                   Padding(
@@ -398,9 +380,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
                                       children: [
                                         Text(p.name, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w600)),
                                         const SizedBox(height: 4),
-                                        Text(p.category, style: Theme.of(context).textTheme.bodySmall),
-                                        const SizedBox(height: 4),
-                                        _buildBadges(context, ProductDetailArgs(product: p)),
+                                        Text(p.category.name, style: Theme.of(context).textTheme.bodySmall),
                                       ],
                                     ),
                                   ),
@@ -411,10 +391,12 @@ class _ProductListScreenState extends State<ProductListScreen> {
                         },
                       )
                     : ListView.separated(
+                        padding: const EdgeInsets.fromLTRB(12, 12, 12, 80),
                         itemCount: filtered.length,
-                        separatorBuilder: (_, __) => const Divider(height: 1),
+                        separatorBuilder: (_, __) => const SizedBox(height: 12),
                         itemBuilder: (context, index) {
                           final p = filtered[index];
+                          final inCart = orders.contains(p);
                           return ListTile(
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                             tileColor: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.25),
@@ -422,9 +404,9 @@ class _ProductListScreenState extends State<ProductListScreen> {
                             leading: AspectRatio(
                               aspectRatio: 1,
                               child: ProductImage(
-                                assetName: p.image,
+                                assetName: p.imageUrl,
                                 fallbackText: p.name,
-                                category: p.category,
+                                category: p.category.name,
                                 borderRadius: BorderRadius.circular(10),
                               ),
                             ),
@@ -432,12 +414,21 @@ class _ProductListScreenState extends State<ProductListScreen> {
                             subtitle: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(p.category),
+                                Text(p.category.name),
                                 const SizedBox(height: 2),
-                                _buildBadges(context, ProductDetailArgs(product: p)),
                               ],
                             ),
-                            trailing: const Icon(Icons.chevron_right),
+                            trailing: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                IconButton(
+                                  tooltip: inCart ? 'Added' : 'Add to order',
+                                  icon: Icon(inCart ? Icons.check : Icons.add_shopping_cart_outlined),
+                                  onPressed: () => _addToOrder(context, p),
+                                ),
+                                const Icon(Icons.chevron_right),
+                              ],
+                            ),
                             onTap: () {
                               Navigator.pushNamed(
                                 context,

@@ -49,20 +49,35 @@ class ProductImage extends StatelessWidget {
     final seedValue = _stableSeed();
 
     final image = (assetName != null && assetName!.isNotEmpty)
-        ? Image.asset(
-            'assets/images/$assetName',
-            width: width,
-            height: height,
-            fit: fit,
-            errorBuilder: (c, e, st) => _NetworkOrSvgPlaceholder(
-              initials: initials,
-              category: category,
-              seed: seedValue,
-              width: width,
-              height: height,
-              fit: fit,
-            ),
-          )
+        ? (assetName!.startsWith('http://') || assetName!.startsWith('https://'))
+            ? Image.network(
+                assetName!,
+                width: width,
+                height: height,
+                fit: fit,
+                errorBuilder: (c, e, st) => _NetworkOrSvgPlaceholder(
+                  initials: initials,
+                  category: category,
+                  seed: seedValue,
+                  width: width,
+                  height: height,
+                  fit: fit,
+                ),
+              )
+            : Image.asset(
+                'assets/images/$assetName',
+                width: width,
+                height: height,
+                fit: fit,
+                errorBuilder: (c, e, st) => _NetworkOrSvgPlaceholder(
+                  initials: initials,
+                  category: category,
+                  seed: seedValue,
+                  width: width,
+                  height: height,
+                  fit: fit,
+                ),
+              )
         : _NetworkOrSvgPlaceholder(
             initials: initials,
             category: category,
